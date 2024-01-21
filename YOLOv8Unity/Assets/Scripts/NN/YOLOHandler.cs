@@ -7,7 +7,7 @@ using UnityEngine.Profiling;
 
 namespace NN
 {
-    public class YOLOHandler : IDisposable
+    public class YOLOHandler
     {
         NNHandler nn;
         public ReferenceComputeOps ops;
@@ -18,11 +18,9 @@ namespace NN
         {
             this.nn = nn;
             ops = BarracudaUtils.CreateOps(WorkerFactory.Type.ComputePrecompiled) as ReferenceComputeOps;
-
-            premulTensor = new Tensor(1, 1, new float[] { 255 });
         }
 
-        public List<ResultBox> Run(Texture2D tex)
+        public List<ResultBoxWithMasks> Run(Texture2D tex)
         {
             Profiler.BeginSample("YOLO.Run");
 
@@ -33,7 +31,6 @@ namespace NN
             var results = Postprocess(outputs[0]);
 
             Tensor masks = outputs[1];
-            //masks.Dispose();
             input.Dispose();
 
             if (results.Count == 0)
@@ -54,7 +51,7 @@ namespace NN
 
             for (int i = 0; i < results.Count; i++)
             {
-                ResultBox box = results[i];
+                ResultBoxWithMasks box = results[i];
                 Tensor maskSlice = ops.StridedSlice(boxMasks, new[] { i, (int)box.rect.yMin, (int)box.rect.xMin, 0 }, new[] { i + 1, (int)box.rect.yMax, (int)box.rect.xMax, boxMasks.channels }, new[] { 1, 1, 1, 1 });
                 int xEndPad = boxMasks.width - (int)box.rect.xMin - maskSlice.width;
                 int yEndPad = boxMasks.height - (int)box.rect.yMin - maskSlice.height;
@@ -66,16 +63,10 @@ namespace NN
             }
             boxMasks.tensorOnDevice.Dispose();
 
-
             masks.Dispose();
 
             Profiler.EndSample();
             return results;
-        }
-
-        public void Dispose()
-        {
-            premulTensor.tensorOnDevice.Dispose();
         }
 
         private void Execute(Tensor preprocessed)
@@ -111,7 +102,7 @@ namespace NN
             return preprocessed;
         }
 
-        List<ResultBox> Postprocess(Tensor x)
+        List<ResultBoxWithMasks> Postprocess(Tensor x)
         {
             Profiler.BeginSample("YOLO.Postprocess");
             var results = YOLOv8Postprocessor.DecodeNNOut(x);

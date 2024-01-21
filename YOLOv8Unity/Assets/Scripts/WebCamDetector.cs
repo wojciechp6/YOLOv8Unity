@@ -1,4 +1,5 @@
-﻿using NN;
+﻿using Assets.Scripts;
+using NN;
 using System;
 using System.Collections.Generic;
 using Unity.Barracuda;
@@ -9,12 +10,12 @@ using UnityEngine.UI;
 public class WebCamDetector : MonoBehaviour
 {
     [Tooltip("File of YOLO model. If you want to use another than YOLOv2 tiny, it may be necessary to change some const values in YOLOHandler.cs")]
-    public NNModel modelFile;
+    public NNModel ModelFile;
     [Tooltip("Text file with classes names separated by coma ','")]
-    public TextAsset classesFile;
+    public TextAsset ClassesFile;
 
     [Tooltip("RawImage component which will be used to draw resuls.")]
-    public RawImage imageRenderer;
+    public RawImage ImageUI;
 
     [Range(0.0f, 1f)]
     [Tooltip("The minimum value of box confidence below which boxes won't be drawn.")]
@@ -24,65 +25,55 @@ public class WebCamDetector : MonoBehaviour
     NNHandler nn;
     YOLOHandler yolo;
 
-    WebCamTexture camTexture;
-    Texture2D displayingTex;
-
-    TextureScaler textureScaler;
+    WebCamTextureProvider CamTextureProvider;
 
     Color[] colorArray = new Color[] { Color.red, Color.green, Color.blue, Color.cyan, Color.magenta, Color.yellow };
 
     void OnEnable()
     {
-        var dev = SelectCameraDevice();
-        camTexture = new WebCamTexture(dev);
-        camTexture.Play();
-
-        nn = new NNHandler(modelFile);
+        nn = new NNHandler(ModelFile);
         yolo = new YOLOHandler(nn);
 
         var firstInput = nn.model.inputs[0];
         int height = firstInput.shape[5];
         int width = firstInput.shape[6];
-        textureScaler = new TextureScaler(width, height);
-        
+
+        CamTextureProvider = new WebCamTextureProvider(width, height);
+        CamTextureProvider.Start();
+
         YOLOv8Postprocessor.DiscardThreshold = MinBoxConfidence;
     }
 
     void Update()
     {
-        CaptureAndPrepareTexture(camTexture, ref displayingTex);
+        Texture2D texture = GetNextTexture();
 
-        var boxes = yolo.Run(displayingTex);
-        DrawResults(boxes, ref displayingTex);
-        imageRenderer.texture = displayingTex;
+        var boxes = yolo.Run(texture);
+        DrawResults(boxes, texture);
+        ImageUI.texture = texture;
+    }
+
+    Texture2D GetNextTexture()
+    {
+        return CamTextureProvider.GetTexture();
     }
 
     private void OnDisable()
     {
         nn.Dispose();
-        yolo.Dispose();
-        textureScaler.Dispose();
-        camTexture.Stop();
+        CamTextureProvider.Stop();
     }
 
-    private void CaptureAndPrepareTexture(WebCamTexture camTexture, ref Texture2D tex)
+    private void DrawResults(IEnumerable<ResultBoxWithMasks> results, Texture2D img)
     {
-        Profiler.BeginSample("Texture processing");
-        TextureCropTools.CropToSquare(camTexture, ref tex);
-        textureScaler.Scale(tex);
-        Profiler.EndSample();
+        results.ForEach(box => DrawBox(box, img));
     }
 
-    private void DrawResults(IEnumerable<ResultBox> results, ref Texture2D img)
+    private void DrawBox(ResultBoxWithMasks box, Texture2D img)
     {
-        results.ForEach(box => DrawBox(box, ref displayingTex));
-    }
-
-    private void DrawBox(ResultBox box, ref Texture2D img)
-    {
-        Color boxColor = colorArray[box.bestClassIdx % colorArray.Length];
-        int boxWidth = (int)(box.confidence / MinBoxConfidence);
-        TextureDrawingUtils.DrawRect(img, box.rect, boxColor, boxWidth, rectIsNormalized: false, revertY: true);
+        Color boxColor = colorArray[box.bestClassIndex % colorArray.Length];
+        int boxWidth = (int)(box.score / MinBoxConfidence);
+        TextureTools.DrawRectOutline(img, box.rect, boxColor, boxWidth, rectIsNormalized: false, revertY: true);
 
         const float maskFactor = 0.25f;
         Tensor imgTensor = new(img);
@@ -102,21 +93,4 @@ public class WebCamDetector : MonoBehaviour
         RenderTexture.active = null;
         rt.Release();
     }
-
-    /// <summary>
-    /// Return first backfaced camera name if avaible, otherwise first possible
-    /// </summary>
-    string SelectCameraDevice()
-    {
-        if (WebCamTexture.devices.Length == 0)
-            throw new Exception("Any camera isn't avaible!");
-
-        foreach (var cam in WebCamTexture.devices)
-        {
-            if (!cam.isFrontFacing)
-                return cam.name;
-        }
-        return WebCamTexture.devices[0].name;
-    }
-
 }
