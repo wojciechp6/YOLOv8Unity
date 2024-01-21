@@ -43,7 +43,7 @@ namespace NN
 
         ~ResultBoxWithMasksIndices()
         {
-            maskInd?.tensorOnDevice.Dispose();
+            maskInd.tensorOnDevice.Dispose();
         }
     }
 
@@ -58,7 +58,7 @@ namespace NN
 
         ~ResultBoxWithMasks()
         {
-            masks?.tensorOnDevice.Dispose();
+            masks.tensorOnDevice.Dispose();
         }
     }
 }
