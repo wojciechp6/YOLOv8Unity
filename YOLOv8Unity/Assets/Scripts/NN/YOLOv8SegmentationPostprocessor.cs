@@ -8,7 +8,7 @@ using UnityEngine.Profiling;
 
 namespace NN
 {
-    public class YOLOv8SegmentationPostprocessor : YOLOv8Postprocessor<ResultBoxWithMasks>
+    public class YOLOv8SegmentationPostprocessor : YOLOv8Postprocessor
     {
         public static float DiscardThreshold = 0.1f;
         const int ClassesNum = 80;
@@ -23,15 +23,24 @@ namespace NN
         }
 
 
-        protected override List<ResultBoxWithMasks> DecodeNNOut(Tensor[] outputs)
+        public new List<ResultBoxWithMasks> Postprocess(Tensor[] outputs)
         {
-            List<ResultBoxWithMasks> boxes = base.DecodeNNOut(outputs);
+            Profiler.BeginSample("YOLOv8Postprocessor.Postprocess");
+            List<ResultBox> boxes = DecodeNNOut(outputs);
+            Profiler.EndSample();
+            return boxes.Select(box => box as ResultBoxWithMasks).ToList();
+        }
+
+        protected override List<ResultBox> DecodeNNOut(Tensor[] outputs)
+        {
+            List<ResultBoxWithMasks> boxes = base.DecodeNNOut(outputs).Select(box => box as ResultBoxWithMasks).ToList();
             boxes = DecodeMasks(outputs[1], boxes);
-            return boxes; 
+            List<ResultBox> boxes1 = boxes.Select(box => box as ResultBox).ToList();
+            return boxes1; 
         }
 
 
-        protected override ResultBoxWithMasks DecodeBox(float[,] array, int box)
+        protected override ResultBox DecodeBox(float[,] array, int box)
         {
             ResultBox boxResult = ResultBox.DecodeBox(array, box, new());
 

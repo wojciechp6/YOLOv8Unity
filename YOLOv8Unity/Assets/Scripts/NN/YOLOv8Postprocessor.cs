@@ -8,26 +8,27 @@ using UnityEngine.Profiling;
 
 namespace NN
 {
-    public abstract class YOLOv8Postprocessor<T> where T : ResultBox
+    public abstract class YOLOv8Postprocessor
     {
         public float DiscardThreshold = 0.1f;
         const int ClassesNum = 80;
         const int BoxesPerCell = 8400;
-        const int WidthHeight = 640;
+        const int InputWidth = 640;
+        const int InputHeight = 640;
 
-        public List<T> Postprocess(Tensor[] outputs)
+        public List<ResultBox> Postprocess(Tensor[] outputs)
         {
             Profiler.BeginSample("YOLOv8Postprocessor.Postprocess");
-            List<T> boxes = DecodeNNOut(outputs);
+            List<ResultBox> boxes = DecodeNNOut(outputs);
             Profiler.EndSample();
             return boxes;
         }
 
-        protected virtual List<T> DecodeNNOut(Tensor[] outputs)
+        protected virtual List<ResultBox> DecodeNNOut(Tensor[] outputs)
         {
             Tensor firstOutput = outputs[0];
             float[,] array = ReadOutputToArray(firstOutput);
-            List<T> boxes = DecodeBoxes(array).ToList();
+            List<ResultBox> boxes = DecodeBoxes(array).ToList();
             boxes = DuplicatesSupressor.RemoveDuplicats(boxes);
             return boxes;
         }
@@ -40,18 +41,75 @@ namespace NN
             return array;
         }
 
-        private IEnumerable<T> DecodeBoxes(float[,] array)
+        private IEnumerable<ResultBox> DecodeBoxes(float[,] array)
         {
             int boxes = array.GetLength(0);
             for (int box_index = 0; box_index < boxes; box_index++)
             {
-                T box = DecodeBox(array, box_index);
+                ResultBox box = DecodeBox(array, box_index);
                 if (box != null)
                     yield return box;
             }
         }
 
-        protected abstract T DecodeBox(float[,] array, int box);
+        protected virtual ResultBox DecodeBox(float[,] array, int box)
+        {
+            (int highestClassIndex, float highestScore) = DecodeBestBoxIndexAndScore(array, box);
+
+            if (highestScore < DiscardThreshold)
+                return null;
+
+            Rect box_rect = DecodeBoxRectangle(array, box);
+
+            ResultBox result = new(
+                rect: box_rect,
+                score: highestScore,
+                bestClassIndex: highestClassIndex);
+            return result;
+        }
+
+        private (int, float) DecodeBestBoxIndexAndScore(float[,] array, int box)
+        {
+            const int classesOffset = 4;
+
+            int highestClassIndex = 0;
+            float highestScore = 0;
+
+            for (int i = 0; i < ClassesNum; i++)
+            {
+                float currentClassScore = array[box, i + classesOffset];
+                if (currentClassScore > highestScore)
+                {
+                    highestScore = currentClassScore;
+                    highestClassIndex = i;
+                }
+            }
+
+            return (highestClassIndex, highestScore);
+        }
+
+        private Rect DecodeBoxRectangle(float[,] data, int box)
+        {
+            const int boxCenterXIndex = 0;
+            const int boxCenterYIndex = 1;
+            const int boxWidthIndex = 2;
+            const int boxHeightIndex = 3;
+
+            float centerX = data[box, boxCenterXIndex];
+            float centerY = data[box, boxCenterYIndex];
+            float width = data[box, boxWidthIndex];
+            float height = data[box, boxHeightIndex];
+
+            float xMin = centerX - width / 2;
+            float yMin = centerY - height / 2;
+            xMin = xMin < 0 ? 0 : xMin;
+            yMin = yMin < 0 ? 0 : yMin;
+            var rect = new Rect(xMin, yMin, width, height);
+            rect.xMax = rect.xMax > InputWidth ? InputWidth : rect.xMax;
+            rect.yMax = rect.yMax > InputHeight ? InputHeight : rect.yMax;
+
+            return rect;
+        }
 
         private float[,] TensorToArray2D(Tensor tensor)
         {
