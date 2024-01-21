@@ -41,7 +41,7 @@ public class WebCamDetector : MonoBehaviour
         CamTextureProvider = new WebCamTextureProvider(width, height);
         CamTextureProvider.Start();
 
-        YOLOv8SegmentationPostprocessor.DiscardThreshold = MinBoxConfidence;
+        YOLOv8SegmentationOutputReader.DiscardThreshold = MinBoxConfidence;
     }
 
     void Update()
@@ -74,23 +74,7 @@ public class WebCamDetector : MonoBehaviour
         Color boxColor = colorArray[box.bestClassIndex % colorArray.Length];
         int boxWidth = (int)(box.score / MinBoxConfidence);
         TextureTools.DrawRectOutline(img, box.rect, boxColor, boxWidth, rectIsNormalized: false, revertY: true);
-
-        const float maskFactor = 0.25f;
-        Tensor imgTensor = new(img);
-        Tensor factorTensor = new(1, 3, new[] { boxColor.r * maskFactor, boxColor.g * maskFactor, boxColor.b * maskFactor });
-        Tensor mask = box.masks;
-        Tensor colorMask = yolo.ops.Mul(new[] { mask, factorTensor });
-        mask.tensorOnDevice.Dispose();
-        factorTensor.tensorOnDevice.Dispose();
-        Tensor imgWithMasks = yolo.ops.Add(new[] { imgTensor, colorMask });
-        imgTensor.tensorOnDevice.Dispose();
-        colorMask.tensorOnDevice.Dispose();
-        var rt = imgWithMasks.ToRenderTexture();
-        RenderTexture.active = rt;
-        img.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
-        img.Apply();
-        imgWithMasks.tensorOnDevice.Dispose();
-        RenderTexture.active = null;
-        rt.Release();
+        TextureTools.RenderMaskOnTexture(box.masks, img, boxColor);
+        box.masks.tensorOnDevice.Dispose();
     }
 }

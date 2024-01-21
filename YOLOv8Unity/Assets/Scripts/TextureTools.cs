@@ -1,6 +1,9 @@
 using System;
+using System.Threading.Tasks;
 using System.Xml.Linq;
+using Unity.Barracuda;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 class TextureTools
 {
@@ -89,6 +92,32 @@ class TextureTools
         Array.Fill(colors, color);
 
         texture.SetPixels32((int)x, (int)y, (int)width, (int)height, colors);
+    }
+
+    public static void RenderMaskOnTexture(Tensor mask, Texture2D texture, Color color, float maskFactor = 0.25f)
+    {
+        IOps ops = BarracudaUtils.CreateOps(WorkerFactory.Type.ComputePrecompiled);
+        Tensor imgTensor = new(texture);
+        Tensor factorTensor = new(1, 3, new[] { color.r * maskFactor, color.g * maskFactor, color.b * maskFactor });
+        Tensor colorMask = ops.Mul(new[] { mask, factorTensor });
+        Tensor imgWithMasks = ops.Add(new[] { imgTensor, colorMask });
+
+        RenderTensorToTexture(imgWithMasks, texture);
+
+        factorTensor.tensorOnDevice.Dispose();
+        imgTensor.tensorOnDevice.Dispose();
+        colorMask.tensorOnDevice.Dispose();
+        imgWithMasks.tensorOnDevice.Dispose();
+    }
+
+    private static void RenderTensorToTexture(Tensor tensor, Texture2D texture)
+    {
+        RenderTexture renderTexture = tensor.ToRenderTexture();
+        RenderTexture.active = renderTexture;
+        texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+        texture.Apply();
+        RenderTexture.active = null;
+        renderTexture.Release();
     }
 }
 

@@ -400,9 +400,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 339c4b6bb28288140952235c57b0905b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  modelFile: {fileID: 5022602860645237092, guid: 6bf076fee69af4741a73f074944c03ab, type: 3}
-  classesFile: {fileID: 4900000, guid: ecd45296a51a652418468f3a35aaafee, type: 3}
-  imageRenderer: {fileID: 1780323367}
+  ModelFile: {fileID: 5022602860645237092, guid: 6bf076fee69af4741a73f074944c03ab, type: 3}
+  ClassesFile: {fileID: 0}
+  ImageUI: {fileID: 1780323367}
   MinBoxConfidence: 0.227
 --- !u!81 &1438580887
 AudioListener:
