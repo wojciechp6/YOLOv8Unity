@@ -8,7 +8,7 @@ using UnityEngine.Profiling;
 
 namespace NN
 {
-    public abstract class YOLOv8Postprocessor<T>
+    public abstract class YOLOv8Postprocessor<T> where T : ResultBox
     {
         public float DiscardThreshold = 0.1f;
         const int ClassesNum = 80;
@@ -27,7 +27,8 @@ namespace NN
         {
             Tensor firstOutput = outputs[0];
             float[,] array = ReadOutputToArray(firstOutput);
-            List<T> boxes = DecodeBoxes<T>(array).ToList();
+            List<T> boxes = DecodeBoxes(array).ToList();
+            boxes = DuplicatesSupressor.RemoveDuplicats(boxes);
             return boxes;
         }
 

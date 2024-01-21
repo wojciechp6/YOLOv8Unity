@@ -41,7 +41,7 @@ public class WebCamDetector : MonoBehaviour
         CamTextureProvider = new WebCamTextureProvider(width, height);
         CamTextureProvider.Start();
 
-        YOLOv8Postprocessor.DiscardThreshold = MinBoxConfidence;
+        YOLOv8SegmentationPostprocessor.DiscardThreshold = MinBoxConfidence;
     }
 
     void Update()
