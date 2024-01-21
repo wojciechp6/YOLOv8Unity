@@ -33,9 +33,9 @@ namespace NN
 
         protected override List<ResultBox> DecodeNNOut(Tensor[] outputs)
         {
-            List<ResultBoxWithMasks> boxes = base.DecodeNNOut(outputs).Select(box => box as ResultBoxWithMasks).ToList();
-            boxes = DecodeMasks(outputs[1], boxes);
-            List<ResultBox> boxes1 = boxes.Select(box => box as ResultBox).ToList();
+            List<ResultBoxWithMasksIndices> boxes = base.DecodeNNOut(outputs).Select(box => box as ResultBoxWithMasksIndices).ToList();
+            List<ResultBoxWithMasks> boxesMasks = DecodeMasks(outputs[1], boxes);
+            List<ResultBox> boxes1 = boxesMasks.Select(box => box as ResultBox).ToList();
             return boxes1; 
         }
 
@@ -47,18 +47,19 @@ namespace NN
             float[] masksScore = Array2DTo1DCopy(array, box, 4 + ClassesNum, 32);
             Tensor masksScoresTensor = new(1, masksScore.Length, masksScore);
 
-            ResultBoxWithMasks result = new(boxResult, null, masksScoresTensor);
+            ResultBoxWithMasks result = new(boxResult, masksScoresTensor);
             return result;
         }
 
-        private List<ResultBoxWithMasks> DecodeMasks(Tensor masks, List<ResultBoxWithMasks> results)
+        private List<ResultBoxWithMasks> DecodeMasks(Tensor masks, List<ResultBoxWithMasksIndices> boxes)
         {
-            if (results.Count == 0)
+            List<ResultBoxWithMasks> results = new();
+            if (boxes.Count == 0)
                 return results;
 
-            var allMaskScoresArray = results.Select(box => box.maskInd).ToArray();
+            var allMaskScoresArray = boxes.Select(box => box.maskInd).ToArray();
             Tensor allMaskScoresTensor = ops.Concat(allMaskScoresArray, axis: 0);
-            Tensor allMaskScoresReshaped = ops.Reshape(allMaskScoresTensor, new TensorShape(results.Count, 1, 1, allMaskScoresTensor.channels));
+            Tensor allMaskScoresReshaped = ops.Reshape(allMaskScoresTensor, new TensorShape(boxes.Count, 1, 1, allMaskScoresTensor.channels));
             allMaskScoresTensor.tensorOnDevice.Dispose();
             Tensor boxMasks = ops.Mul(new[] { masks, allMaskScoresReshaped });
             allMaskScoresReshaped.tensorOnDevice.Dispose();
@@ -69,17 +70,19 @@ namespace NN
             boxMasks = ops.Upsample2D(boxMasks1, new[] { 4, 4 }, true);
             boxMasks1.tensorOnDevice.Dispose();
 
-            for (int i = 0; i < results.Count; i++)
+            for (int i = 0; i < boxes.Count; i++)
             {
-                ResultBoxWithMasks box = results[i];
+                ResultBoxWithMasksIndices box = boxes[i];
                 Tensor maskSlice = ops.StridedSlice(boxMasks, new[] { i, (int)box.rect.yMin, (int)box.rect.xMin, 0 }, new[] { i + 1, (int)box.rect.yMax, (int)box.rect.xMax, boxMasks.channels }, new[] { 1, 1, 1, 1 });
                 int xEndPad = boxMasks.width - (int)box.rect.xMin - maskSlice.width;
                 int yEndPad = boxMasks.height - (int)box.rect.yMin - maskSlice.height;
                 Tensor padded = ops.Border2D(maskSlice, new[] { (int)box.rect.xMin, (int)box.rect.yMin, 0, xEndPad, yEndPad, 0 }, 0);
 
-                box.masks = padded;
+                ResultBoxWithMasks r = new(box, padded);
+
+
                 maskSlice.tensorOnDevice.Dispose();
-                results[i].maskInd.tensorOnDevice.Dispose();
+                boxes[i].maskInd.tensorOnDevice.Dispose();
             }
             boxMasks.tensorOnDevice.Dispose();
             return results;

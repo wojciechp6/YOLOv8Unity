@@ -108,18 +108,15 @@ namespace NN
 
     public class ResultBoxWithMasks : ResultBox
     {
-        public Tensor masks;
-        public readonly Tensor maskInd;
+        public readonly Tensor masks;
 
-        public ResultBoxWithMasks(ResultBox box, Tensor masks, Tensor masksScores) : base(box.rect, box.score, box.bestClassIndex)
+        public ResultBoxWithMasks(ResultBox box, Tensor masks) : base(box.rect, box.score, box.bestClassIndex)
         {
             this.masks = masks;
-            maskInd = masksScores;
         }
 
         ~ResultBoxWithMasks()
         {
-            maskInd?.tensorOnDevice.Dispose();
             masks?.tensorOnDevice.Dispose();
         }
     }
