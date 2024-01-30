@@ -13,7 +13,7 @@ namespace Tests
         const string MODEL_PATH = "Assets/YOLOv2 Tiny.onnx";
         const string IMAGE_PATH = "Assets/Tests/test_image.jpg";
         const float min_confidence = 0.15f;
-        private YOLOHandler yolo;
+        private YOLOv8 yolo;
         NNHandler nnHandler;
         private Texture2D test_image;
 
@@ -22,7 +22,7 @@ namespace Tests
         {
             NNModel model = AssetDatabase.LoadAssetAtPath<NNModel>(MODEL_PATH);
             nnHandler = new(model);
-            yolo = new YOLOHandler(nnHandler);
+            yolo = new YOLOv8(nnHandler);
             test_image = AssetDatabase.LoadAssetAtPath<Texture2D>(IMAGE_PATH);
         }
 

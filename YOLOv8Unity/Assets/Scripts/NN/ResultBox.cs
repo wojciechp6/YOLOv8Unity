@@ -47,16 +47,16 @@ namespace NN
         }
     }
 
-    public class ResultBoxWithMasks : ResultBox
+    public class ResultBoxWithMask : ResultBox
     {
         public readonly Tensor masks;
 
-        public ResultBoxWithMasks(ResultBox box, Tensor masks) : base(box.rect, box.score, box.bestClassIndex)
+        public ResultBoxWithMask(ResultBox box, Tensor masks) : base(box.rect, box.score, box.bestClassIndex)
         {
             this.masks = masks;
         }
 
-        ~ResultBoxWithMasks()
+        ~ResultBoxWithMask()
         {
             masks.tensorOnDevice.Dispose();
         }
