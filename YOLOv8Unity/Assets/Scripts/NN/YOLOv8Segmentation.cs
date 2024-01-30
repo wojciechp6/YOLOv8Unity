@@ -82,8 +82,7 @@ namespace NN
                 int[] startIndexes = new[] { i, rectInt.yMin, rectInt.xMin, 0 };
                 int[] stopIndexes = new[] { i + 1, rectInt.yMax, rectInt.xMax, boxMasks.channels };
                 int[] strides = new[] { 1, 1, 1, 1 };
-                //Tensor maskSlice = ops.StridedSlice(boxMasks, startIndexes, stopIndexes, strides);
-                Tensor maskSlice = ops.StridedSlice(boxMasks, new[] { i, (int)box.rect.yMin, (int)box.rect.xMin, 0 }, new[] { i + 1, (int)box.rect.yMax, (int)box.rect.xMax, boxMasks.channels }, new[] { 1, 1, 1, 1 });
+                Tensor maskSlice = ops.StridedSlice(boxMasks, startIndexes, stopIndexes, strides);
 
                 int xEndPad = boxMasks.width - rectInt.xMin - maskSlice.width;
                 int yEndPad = boxMasks.height - rectInt.yMin - maskSlice.height;
