@@ -3,21 +3,6 @@ using UnityEngine;
 
 namespace NN
 {
-    public readonly struct DecodeParams
-    {
-        public readonly float DiscardThreshold;
-        public readonly int ClassesNum;
-        public readonly int InputWidth;
-        public readonly int InputHeight;
-
-        public DecodeParams(float discardThreshold, int classesNum, int inputWidth, int inputHeight)
-        {
-            DiscardThreshold = discardThreshold;
-            ClassesNum = classesNum;
-            InputWidth = inputWidth;
-            InputHeight = inputHeight;
-        }
-    }
     public class ResultBox
     {
         public readonly Rect rect;
