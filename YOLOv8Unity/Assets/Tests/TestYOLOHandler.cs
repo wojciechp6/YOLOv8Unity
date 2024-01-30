@@ -12,23 +12,24 @@ namespace Tests
     {
         const string MODEL_PATH = "Assets/YOLOv2 Tiny.onnx";
         const string IMAGE_PATH = "Assets/Tests/test_image.jpg";
-        const float min_confidence = 0.1f;
-        private YOLOHandler yolo;
+        const float min_confidence = 0.15f;
+        private YOLOv8 yolo;
+        NNHandler nnHandler;
         private Texture2D test_image;
 
         [SetUp]
         public void Setup()
         {
             NNModel model = AssetDatabase.LoadAssetAtPath<NNModel>(MODEL_PATH);
-            NNHandler nnHandler = new(model);
-            yolo = new YOLOHandler(nnHandler);
+            nnHandler = new(model);
+            yolo = new YOLOv8(nnHandler);
             test_image = AssetDatabase.LoadAssetAtPath<Texture2D>(IMAGE_PATH);
         }
 
         [TearDown]
         public void TearDown()
         {
-            yolo.Dispose();
+            nnHandler.Dispose();
         }
 
         [Test]
@@ -60,24 +61,24 @@ namespace Tests
         public void ConfidentResultsHasRightClasses()
         {
             // given 
-            int firstExpectedClass = 19;
-            int secondExpectedClass = 14;
+            int firstExpectedClass = 14;
+            int secondExpectedClass = 19;
 
             // when
             var results = yolo.Run(test_image);
             var confident_results = GetConfidentResults(results);
 
             // then
-            Assert.AreEqual(firstExpectedClass, confident_results[0].bestClassIdx);
-            Assert.AreEqual(secondExpectedClass, confident_results[1].bestClassIdx);
+            Assert.AreEqual(firstExpectedClass, confident_results[0].bestClassIndex);
+            Assert.AreEqual(secondExpectedClass, confident_results[1].bestClassIndex);
         }
 
         [Test]
         public void ConfidentResultsHasRightBoxes()
         {
             // given
-            Rect firstExpectedRect = new(x: 0.56f, y: 0.20f, width: 0.23f, height: 0.31f);
-            Rect secondExpectedRect = new(x: -0.01f, y: 0.13f, width: 0.55f, height: 0.76f);
+            Rect firstExpectedRect = new(x: -3.34f, y: 53.32f, width: 229.38f, height: 318.09f);
+            Rect secondExpectedRect = new(x:234.16f, y:83.54f, width:94.07f, height:129.21f);
 
             // when
             var results = yolo.Run(test_image);
@@ -88,9 +89,9 @@ namespace Tests
             AssertAreRectsEqual(secondExpectedRect, confident_results[1].rect);
         }
 
-        private List<ResultBox> GetConfidentResults(List<ResultBox> rawResults)
+        private List<T> GetConfidentResults<T>(List<T> rawResults) where T : ResultBox
         {
-            return rawResults.Where(box => box.classes[box.bestClassIdx] > min_confidence).ToList();
+            return rawResults.Where(box => box.score > min_confidence).ToList();
         }
 
         private void AssertAreRectsEqual(Rect expected, Rect actual)

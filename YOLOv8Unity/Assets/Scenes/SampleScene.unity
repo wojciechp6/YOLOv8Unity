@@ -400,9 +400,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 339c4b6bb28288140952235c57b0905b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  modelFile: {fileID: 5022602860645237092, guid: 6bf076fee69af4741a73f074944c03ab, type: 3}
-  classesFile: {fileID: 4900000, guid: ecd45296a51a652418468f3a35aaafee, type: 3}
-  imageRenderer: {fileID: 1780323367}
+  ModelFile: {fileID: 5022602860645237092, guid: 6bf076fee69af4741a73f074944c03ab, type: 3}
+  ImageUI: {fileID: 1780323367}
   MinBoxConfidence: 0.227
 --- !u!81 &1438580887
 AudioListener:
@@ -422,7 +421,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -505,15 +504,15 @@ RectTransform:
   m_GameObject: {fileID: 1780323365}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.34, y: 1.34, z: 1.34}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 98631264}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 11.3}
-  m_SizeDelta: {x: 433.6, y: 423.3}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 640, y: 640}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1780323367
 MonoBehaviour:

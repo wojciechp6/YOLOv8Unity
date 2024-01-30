@@ -23,8 +23,8 @@ namespace Tests
 
             DuplicatesSupressor.RemoveDuplicats(boxes);
 
-            Assert.AreEqual(box1ClassScore, box1.classes[bestClass]);
-            Assert.AreEqual(0, box2.classes[bestClass]);
+            Assert.AreEqual(box1ClassScore, box1.score);
+            Assert.AreEqual(0, box2.score);
         }
 
         [Test]
@@ -42,8 +42,8 @@ namespace Tests
 
             DuplicatesSupressor.RemoveDuplicats(boxes);
 
-            Assert.AreEqual(0, box1.classes[bestClass]);
-            Assert.AreEqual(box2ClassScore, box2.classes[bestClass]);
+            Assert.AreEqual(0, box1.score);
+            Assert.AreEqual(box2ClassScore, box2.score);
         }
 
         [Test]
@@ -62,8 +62,8 @@ namespace Tests
 
             DuplicatesSupressor.RemoveDuplicats(boxes);
 
-            Assert.AreEqual(box1ClassScore, box1.classes[box1BestClass]);
-            Assert.AreEqual(box2ClassScore, box2.classes[box2BestClass]);
+            Assert.AreEqual(box1ClassScore, box1.score);
+            Assert.AreEqual(box2ClassScore, box2.score);
         }
 
         [Test]
@@ -83,22 +83,16 @@ namespace Tests
 
             DuplicatesSupressor.RemoveDuplicats(boxes);
 
-            Assert.AreEqual(0, box1.classes[bestClass]);
-            Assert.AreEqual(box2ClassScore, box2.classes[bestClass]);
+            Assert.AreEqual(0, box1.score);
+            Assert.AreEqual(box2ClassScore, box2.score);
         }
 
         ResultBox CreateTestResultBox(int bestClass, float classScore, Rect rect)
         {
-            const int classesNum = 20;
-            float[] classes = new float[classesNum];
-            classes[bestClass] = classScore;
-
-            ResultBox box = new ResultBox
-            {
-                bestClassIdx = bestClass,
-                classes = classes,
-                rect = rect
-            };
+            ResultBox box = new(
+                bestClassIndex: bestClass,
+                rect: rect,
+                score: classScore);
             return box;
         }
 
