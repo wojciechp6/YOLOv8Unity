@@ -19,30 +19,24 @@ public class WebCamDetector : MonoBehaviour
     [Tooltip("The minimum value of box confidence below which boxes won't be drawn.")]
     public float MinBoxConfidence = 0.3f;
 
-    NNHandler nn;
-    YOLOv8Segmentation yolo;
+    protected NNHandler nn;
+    protected WebCamTextureProvider CamTextureProvider;
+    protected Color[] colorArray = new Color[] { Color.red, Color.green, Color.blue, Color.cyan, Color.magenta, Color.yellow };
 
-    WebCamTextureProvider CamTextureProvider;
+    YOLOv8 yolo;
 
-    Color[] colorArray = new Color[] { Color.red, Color.green, Color.blue, Color.cyan, Color.magenta, Color.yellow };
 
-    void OnEnable()
+    private void OnEnable()
     {
         nn = new NNHandler(ModelFile);
         yolo = new YOLOv8Segmentation(nn);
 
-        var firstInput = nn.model.inputs[0];
-        int height = firstInput.shape[5];
-        int width = firstInput.shape[6];
-
-        CamTextureProvider = new WebCamTextureProvider(width, height);
-        CamTextureProvider.Start();
-
-        YOLOv8SegmentationOutputReader.DiscardThreshold = MinBoxConfidence;
+        CamTextureProvider = GetTextureProvider();
     }
 
-    void Update()
+    private void Update()
     {
+        YOLOv8OutputReader.DiscardThreshold = MinBoxConfidence;
         Texture2D texture = GetNextTexture();
 
         var boxes = yolo.Run(texture);
@@ -50,33 +44,37 @@ public class WebCamDetector : MonoBehaviour
         ImageUI.texture = texture;
     }
 
-    Texture2D GetNextTexture()
+    protected WebCamTextureProvider GetTextureProvider()
+    {
+        var firstInput = nn.model.inputs[0];
+        int height = firstInput.shape[5];
+        int width = firstInput.shape[6];
+
+        WebCamTextureProvider textureProvider = new WebCamTextureProvider(width, height);
+        textureProvider.Start();
+        return textureProvider;
+    }
+
+    protected Texture2D GetNextTexture()
     {
         return CamTextureProvider.GetTexture();
     }
 
-    private void OnDisable()
+    void OnDisable()
     {
         nn.Dispose();
         CamTextureProvider.Stop();
     }
 
-    private void DrawResults(IEnumerable<ResultBox> results, Texture2D img)
+    protected void DrawResults(IEnumerable<ResultBox> results, Texture2D img)
     {
         results.ForEach(box => DrawBox(box, img));
     }
 
-    private void DrawBox(ResultBox box, Texture2D img)
+    protected virtual void DrawBox(ResultBox box, Texture2D img)
     {
         Color boxColor = colorArray[box.bestClassIndex % colorArray.Length];
         int boxWidth = (int)(box.score / MinBoxConfidence);
         TextureTools.DrawRectOutline(img, box.rect, boxColor, boxWidth, rectIsNormalized: false, revertY: true);
-
-        ResultBoxWithMask boxWithMasks = box as ResultBoxWithMask;
-        if(boxWithMasks != null)
-        {
-            TextureTools.RenderMaskOnTexture(boxWithMasks.masks, img, boxColor);
-            boxWithMasks.masks.tensorOnDevice.Dispose();
-        }
     }
 }

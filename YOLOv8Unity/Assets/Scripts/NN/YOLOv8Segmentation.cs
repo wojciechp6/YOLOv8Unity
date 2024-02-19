@@ -77,16 +77,16 @@ namespace NN
             for (int i = 0; i < boxes.Count; i++)
             {
                 ResultBoxWithMasksIndices box = boxes[i];
-                RectInt rectInt = new RectInt((int)box.rect.xMin, (int)box.rect.yMin, (int)box.rect.width, (int)box.rect.height);
+                RectInt rect = new RectInt((int)box.rect.xMin, (int)box.rect.yMin, (int)box.rect.width, (int)box.rect.height);
 
-                int[] startIndexes = new[] { i, rectInt.yMin, rectInt.xMin, 0 };
-                int[] stopIndexes = new[] { i + 1, rectInt.yMax, rectInt.xMax, boxMasks.channels };
+                int[] startIndexes = new[] { i, rect.yMin, rect.xMin, 0 };
+                int[] stopIndexes = new[] { i + 1, rect.yMax, rect.xMax, boxMasks.channels };
                 int[] strides = new[] { 1, 1, 1, 1 };
                 Tensor maskSlice = ops.StridedSlice(boxMasks, startIndexes, stopIndexes, strides);
 
-                int xEndPad = boxMasks.width - rectInt.xMin - maskSlice.width;
-                int yEndPad = boxMasks.height - rectInt.yMin - maskSlice.height;
-                int[] padsSize = new[] { rectInt.xMin, rectInt.yMin, 0, xEndPad, yEndPad, 0 };
+                int xEndPad = boxMasks.width - rect.xMin - maskSlice.width;
+                int yEndPad = boxMasks.height - rect.yMin - maskSlice.height;
+                int[] padsSize = new[] { rect.xMin, rect.yMin, 0, xEndPad, yEndPad, 0 };
                 Tensor padded = ops.Border2D(maskSlice, padsSize, 0);
 
                 ResultBoxWithMask resultMask = new(box, padded);
