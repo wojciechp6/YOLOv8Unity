@@ -11,7 +11,7 @@ This new version of YOLO achieves better accuracy and is even faster than its pr
 
 ## Usage
 ### Instance Segmentation
-To use this project you need to obtain onnx version of the segmentation model and indicate it in the script.  
+To run segmentation you need to obtain the onnx version of the segmentation model and indicate it in the script.  
 1. Download the already converted model from [PINTO model zoo](https://github.com/PINTO0309/PINTO_model_zoo/tree/main/345_YOLOv8) or convert it by yourself using [export command](https://docs.ultralytics.com/usage/cli/).
 2. Copy the segmentation model to *Assets*.
 3. Open *Scenes/Segmentation*.
@@ -20,7 +20,7 @@ To use this project you need to obtain onnx version of the segmentation model an
 6. Run the scene.
 
 ### Object Detection
-To use this project you need to obtain onnx version of the detection model and indicate it in the script.  
+To run object detection you need to obtain the onnx version of the detection model and indicate it in the script.  
 1. Download the already converted model from [PINTO model zoo](https://github.com/PINTO0309/PINTO_model_zoo/tree/main/345_YOLOv8) or convert it by yourself using [export command](https://docs.ultralytics.com/usage/cli/).
 2. Copy the detection model to *Assets*.
 3. Open *Scenes/Detection*.
