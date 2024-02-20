@@ -3,33 +3,40 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Profiling;
 
-namespace Assets.Scripts
+namespace Assets.Scripts.TextureProviders
 {
-    public class WebCamTextureProvider
+    [Serializable]
+    public class WebCamTextureProvider : TextureProvider
     {
-        private Texture2D ResultTexture;
+        [Tooltip("Leave empty for automatic selection.")]
+        [SerializeField]
+        private string cameraName;
         private WebCamTexture webCamTexture;
 
-        public WebCamTextureProvider(int width, int height, TextureFormat format = TextureFormat.RGB24, string cameraName = null)
+        public WebCamTextureProvider(int width, int height, TextureFormat format = TextureFormat.RGB24, string cameraName = null) : base(width, height, format)
         {
-            ResultTexture = new Texture2D(width, height, format, mipChain: false);
             cameraName = cameraName != null ? cameraName : SelectCameraDevice();
             webCamTexture = new WebCamTexture(cameraName);
+            InputTexture = webCamTexture;
         }
 
-        public void Start()
+        public WebCamTextureProvider(WebCamTextureProvider provider,int width, int height, TextureFormat format = TextureFormat.RGB24) : this(width, height, format, provider?.cameraName)
+        {
+        }
+
+        public override void Start()
         {
             webCamTexture.Play();
         }
 
-        public void Stop()
+        public override void Stop()
         {
             webCamTexture.Stop();
         }
 
-        public Texture2D GetTexture()
+        public override TextureProviderType.ProviderType TypeEnum()
         {
-            return TextureTools.ResizeAndCropToCenter(webCamTexture, ref ResultTexture, ResultTexture.width, ResultTexture.height);
+            return TextureProviderType.ProviderType.WebCam;
         }
 
         /// <summary>

@@ -73,3 +73,5 @@ crashlytics-build.properties
 
 *.onnx
 *.onnx.meta
+*.mp4
+*.mp4.meta
