@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Assets.Scripts
 {
-    public class Segmentator : WebCamDetector
+    public class Segmentator : Detector
     {
         YOLOv8Segmentation yolo;
 
@@ -14,7 +14,8 @@ namespace Assets.Scripts
             nn = new NNHandler(ModelFile);
             yolo = new YOLOv8Segmentation(nn);
 
-            CamTextureProvider = GetTextureProvider();
+            textureProvider = GetTextureProvider(nn.model);
+            textureProvider.Start();
         }
 
         // Update is called once per frame
@@ -30,8 +31,8 @@ namespace Assets.Scripts
 
         void OnDisable()
         {
-            nn.Dispose();
-            CamTextureProvider.Stop();
+            nn.Dispose(); 
+            textureProvider.Stop();
         }
 
         protected override void DrawBox(ResultBox box, Texture2D img)

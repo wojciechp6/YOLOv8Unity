@@ -477,6 +477,13 @@ MonoBehaviour:
   ModelFile: {fileID: 5022602860645237092, guid: 6bf076fee69af4741a73f074944c03ab, type: 3}
   ImageUI: {fileID: 1780323367}
   MinBoxConfidence: 0.3
+  textureProvider:
+    rid: -2
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
 --- !u!1 &1780323365
 GameObject:
   m_ObjectHideFlags: 0
