@@ -25,5 +25,5 @@ To run object detection you need to obtain the onnx version of the detection mod
 2. Copy the detection model to *Assets*.
 3. Open *Scenes/Detection*.
 4. Select *Main Camera*.
-5. In the *Detector* component point your segmentation model in the *Model File* field.
+5. In the *Detector* component point your detection model in the *Model File* field.
 6. Run the scene.
