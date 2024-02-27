@@ -10,6 +10,8 @@ This new version of YOLO achieves better accuracy and is even faster than its pr
 ![image](https://github.com/wojciechp6/YOLOv8Unity/assets/29753380/7d2dd65f-1564-4be4-83c9-c2c424d31734)
 
 ## Usage
+This project uses Unity 2022.3.   
+
 ### Instance Segmentation
 To run segmentation you need to obtain the onnx version of the segmentation model and indicate it in the script.  
 1. Download the already converted model from [PINTO model zoo](https://github.com/PINTO0309/PINTO_model_zoo/tree/main/345_YOLOv8) or convert it by yourself using [export command](https://docs.ultralytics.com/usage/cli/).
