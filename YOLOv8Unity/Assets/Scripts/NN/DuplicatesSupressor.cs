@@ -8,22 +8,21 @@ public static class DuplicatesSupressor
 {
     const float OVERLAP_TRESHOLD = 0.3f;
 
-    static public List<ResultBox> RemoveDuplicats(List<ResultBox> boxes)
+    static public List<T> RemoveDuplicats<T>(List<T> boxes) where T : ResultBox
     {
         Profiler.BeginSample("DuplicatesSupressor.RemoveDuplicats");
 
         if (boxes.Count == 0)
             return boxes;
 
-        List<ResultBox> result_boxes = new();
+        List<T> result_boxes = new();
 
-        //Parallel.For(0, 80, classIndex =>
         for (int classIndex = 0; classIndex < 80; classIndex++)
         {
 
-            var classBoxes = boxes.Where(box => box.bestClassIdx == classIndex).ToList();
-            RemoveDuplicatesForClass(boxes);
-            classBoxes = classBoxes.Where(box => box.confidence > 0).ToList();
+            var classBoxes = boxes.Where(box => box.bestClassIndex == classIndex).ToList();
+            RemoveDuplicatesForClass(classBoxes);
+            classBoxes = classBoxes.Where(box => box.score > 0).ToList();
             result_boxes.AddRange(classBoxes);
         }
 
@@ -32,32 +31,32 @@ public static class DuplicatesSupressor
         return result_boxes;
     }
 
-    private static void RemoveDuplicatesForClass(List<ResultBox> boxes)
+    private static void RemoveDuplicatesForClass<T>(List<T> boxes) where T : ResultBox
     {
         SortBoxesByScore(boxes);
         for (int i = 0; i < boxes.Count; i++)
         {
-            ResultBox i_box = boxes[i];
-            if (i_box.confidence == 0)
+            T i_box = boxes[i];
+            if (i_box.score == 0)
                 continue;
 
             for (int j = i + 1; j < boxes.Count; j++)
             {
-                ResultBox j_box = boxes[j];
+                T j_box = boxes[j];
                 float iou = IntersectionOverUnion.CalculateIOU(i_box.rect, j_box.rect);
-                if (iou >= OVERLAP_TRESHOLD && i_box.confidence > j_box.confidence)
+                if (iou >= OVERLAP_TRESHOLD && i_box.score > j_box.score)
                 {
-                    j_box.confidence = 0;
+                    j_box.score = 0;
                     boxes[j] = j_box;
                 }
             }
         }
     }
 
-    private static List<ResultBox> SortBoxesByScore(List<ResultBox> boxes)
+    private static List<T> SortBoxesByScore<T>(List<T> boxes) where T : ResultBox
     {
         Comparison<ResultBox> boxClassValueComparer =
-            (box1, box2) => box2.confidence.CompareTo(box1.confidence);
+            (box1, box2) => box2.score.CompareTo(box1.score);
         boxes.Sort(boxClassValueComparer);
         return boxes;
     }
