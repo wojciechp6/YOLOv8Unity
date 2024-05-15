@@ -14,7 +14,7 @@ This project uses Unity 2022.3.
 
 ### Instance Segmentation
 To run segmentation you need to obtain the onnx version of the segmentation model and indicate it in the script.  
-1. Download the already converted model from [PINTO model zoo](https://github.com/PINTO0309/PINTO_model_zoo/tree/main/345_YOLOv8) or convert it by yourself using [export command](https://docs.ultralytics.com/usage/cli/).
+1. ~~Download the already converted model from [PINTO model zoo](https://github.com/PINTO0309/PINTO_model_zoo/tree/main/345_YOLOv8)~~ (not available for now) or convert it by yourself using [export command](https://docs.ultralytics.com/usage/cli/#export).
 2. Copy the segmentation model to *Assets*.
 3. Open *Scenes/Segmentation*.
 4. Select *Main Camera*.
@@ -23,7 +23,7 @@ To run segmentation you need to obtain the onnx version of the segmentation mode
 
 ### Object Detection
 To run object detection you need to obtain the onnx version of the detection model and indicate it in the script.  
-1. Download the already converted model from [PINTO model zoo](https://github.com/PINTO0309/PINTO_model_zoo/tree/main/345_YOLOv8) or convert it by yourself using [export command](https://docs.ultralytics.com/usage/cli/).
+1. ~~Download the already converted model from [PINTO model zoo](https://github.com/PINTO0309/PINTO_model_zoo/tree/main/345_YOLOv8)~~ (not available for now) or convert it by yourself using [export command](https://docs.ultralytics.com/usage/cli/#export).
 2. Copy the detection model to *Assets*.
 3. Open *Scenes/Detection*.
 4. Select *Main Camera*.
